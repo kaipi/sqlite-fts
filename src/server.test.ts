@@ -31,21 +31,21 @@ afterEach(() => {
 describe('http', () => {
   it('indexes a document and queries it', async () => {
     const { base } = await listen()
-    const put = await fetch(`${base}/indexes/dogs/documents/1`, {
+    const put = await fetch(`${base}/indexes/products/documents/1`, {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ text: 'Järvinen Matti', fields: { breed: 'BC' } }),
+      body: JSON.stringify({ text: 'Café Latte Roast', fields: { category: 'coffee' } }),
     })
     expect(put.status).toBe(204)
 
-    const queried = await fetch(`${base}/indexes/dogs/query`, {
+    const queried = await fetch(`${base}/indexes/products/query`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ q: 'jarvinen', filters: { breed: 'BC' } }),
+      body: JSON.stringify({ q: 'cafe', filters: { category: 'coffee' } }),
     })
     expect(queried.status).toBe(200)
     await expect(queried.json()).resolves.toEqual({
-      hits: [{ id: '1', fields: { breed: 'BC' } }],
+      hits: [{ id: '1', fields: { category: 'coffee' } }],
     })
   })
 

@@ -2,7 +2,7 @@
 
 Small full-text search service. Each index is one SQLite FTS5 file. Cloud Run keeps a local copy and stores the file in Cloud Storage. Scale to zero is fine: the next request downloads the file and serves it.
 
-The dog database is a future client. This service does not know about dogs.
+Any app can be a client. This service only stores opaque document text and string fields.
 
 ## API
 
@@ -16,11 +16,11 @@ GET    /health
 ```
 
 ```json
-{ "text": "Järvinen Matti", "fields": { "breed": "BC", "sex": "uros" } }
+{ "text": "Café Latte Roast", "fields": { "category": "coffee", "status": "published" } }
 ```
 
 ```json
-{ "q": "jarvinen", "filters": { "sex": "uros" }, "limit": 20 }
+{ "q": "cafe roast", "filters": { "status": "published" }, "limit": 20 }
 ```
 
 `q` is free text. Words are combined with AND and matched as prefixes. Letters with accents match without them. `filters` are exact string equality. An empty `q` with filters lists matching documents.

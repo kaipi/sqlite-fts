@@ -20,24 +20,24 @@ afterEach(() => {
 describe('IndexDb', () => {
   it('matches a prefix and ignores diacritics', () => {
     const db = openDb()
-    db.upsert({ id: '1', text: 'Järvinen Matti', fields: { breed: 'BC' } })
-    expect(db.search({ q: 'jarv' }).map((hit) => hit.id)).toEqual(['1'])
-    expect(db.search({ q: 'matti järvinen' }).map((hit) => hit.id)).toEqual(['1'])
+    db.upsert({ id: '1', text: 'Café Latte Roast', fields: { category: 'coffee' } })
+    expect(db.search({ q: 'caf' }).map((hit) => hit.id)).toEqual(['1'])
+    expect(db.search({ q: 'latte café' }).map((hit) => hit.id)).toEqual(['1'])
   })
 
   it('applies equality filters before the limit', () => {
     const db = openDb()
-    db.upsert({ id: 'sire', text: 'Blackwood Night', fields: { sex: 'uros' } })
-    db.upsert({ id: 'dam', text: 'Blackwood Star', fields: { sex: 'narttu' } })
-    const hits = db.search({ q: 'black', filters: { sex: 'uros' } })
-    expect(hits.map((hit) => hit.id)).toEqual(['sire'])
+    db.upsert({ id: 'open', text: 'Blackwood Trail', fields: { status: 'open' } })
+    db.upsert({ id: 'closed', text: 'Blackwood Path', fields: { status: 'closed' } })
+    const hits = db.search({ q: 'black', filters: { status: 'open' } })
+    expect(hits.map((hit) => hit.id)).toEqual(['open'])
   })
 
   it('can filter without a text query', () => {
     const db = openDb()
-    db.upsert({ id: 'a', text: 'Alpha', fields: { breed: 'BC' } })
-    db.upsert({ id: 'b', text: 'Beta', fields: { breed: 'AK' } })
-    expect(db.search({ filters: { breed: 'AK' } }).map((hit) => hit.id)).toEqual(['b'])
+    db.upsert({ id: 'a', text: 'Alpha', fields: { category: 'tools' } })
+    db.upsert({ id: 'b', text: 'Beta', fields: { category: 'books' } })
+    expect(db.search({ filters: { category: 'books' } }).map((hit) => hit.id)).toEqual(['b'])
   })
 
   it('replaces and deletes a document', () => {

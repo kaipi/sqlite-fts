@@ -17,8 +17,8 @@ describe('toFtsMatch', () => {
 
 describe('names', () => {
   it('rejects unsafe field and index names', () => {
-    expect(() => assertFieldName('breed;drop')).toThrow(/filter field/)
+    expect(() => assertFieldName('status;drop')).toThrow(/filter field/)
     expect(() => assertIndexName('../etc')).toThrow(/index name/)
-    expect(assertIndexName('dogs')).toBe('dogs')
+    expect(assertIndexName('products')).toBe('products')
   })
 })
