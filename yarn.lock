@@ -249,6 +249,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@kaipi/sqlite-fts@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@kaipi/sqlite-fts@workspace:."
+  dependencies:
+    "@google-cloud/storage": "npm:^7.16.0"
+    "@types/better-sqlite3": "npm:^7.6.13"
+    "@types/node": "npm:^22.15.0"
+    better-sqlite3: "npm:^12.4.1"
+    tsx: "npm:^4.20.3"
+    typescript: "npm:^5.9.2"
+    vitest: "npm:^3.2.4"
+  languageName: unknown
+  linkType: soft
+
 "@nodable/entities@npm:^3.1.0":
   version: 3.1.0
   resolution: "@nodable/entities@npm:3.1.0"
@@ -1878,20 +1892,6 @@ __metadata:
   checksum: 10c0/d5d6dec62266834f83dd4f8a2606a196fb1a006ca5d53b0ef80ee513b7eba2f4e2ae241f4bc129ae7e9b80dea24f6e3d92b446b7e6e96be7653cab8888168a94
   languageName: node
   linkType: hard
-
-"sqlite-fts@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "sqlite-fts@workspace:."
-  dependencies:
-    "@google-cloud/storage": "npm:^7.16.0"
-    "@types/better-sqlite3": "npm:^7.6.13"
-    "@types/node": "npm:^22.15.0"
-    better-sqlite3: "npm:^12.4.1"
-    tsx: "npm:^4.20.3"
-    typescript: "npm:^5.9.2"
-    vitest: "npm:^3.2.4"
-  languageName: unknown
-  linkType: soft
 
 "stackback@npm:0.0.2":
   version: 0.0.2
