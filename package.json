@@ -30,6 +30,7 @@
     "dev": "tsx watch src/bin.ts",
     "start": "node dist/bin.js",
     "prepare": "tsc -p tsconfig.build.json",
+    "prepack": "tsc -p tsconfig.build.json",
     "prepublishOnly": "yarn build",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.build.json --noEmit && tsc -p tsconfig.json --noEmit"
