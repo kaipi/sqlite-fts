@@ -38,6 +38,11 @@ export class FtsClient {
     throw await this.error(res)
   }
 
+  async flush(index: string): Promise<void> {
+    const name = assertIndexName(index)
+    await this.request('POST', `/indexes/${name}/flush`)
+  }
+
   async query(index: string, input: SearchInput): Promise<SearchHit[]> {
     const name = assertIndexName(index)
     const body = await this.request<{ hits: SearchHit[] }>('POST', `/indexes/${name}/query`, input)

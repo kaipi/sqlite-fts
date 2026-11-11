@@ -29,6 +29,7 @@
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsx watch src/bin.ts",
     "start": "node dist/bin.js",
+    "prepare": "tsc -p tsconfig.build.json",
     "prepublishOnly": "yarn build",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.build.json --noEmit && tsc -p tsconfig.json --noEmit"
@@ -40,13 +41,13 @@
   "license": "MIT",
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",
-    "better-sqlite3": "^12.4.1"
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.4.1",
+    "typescript": "^5.9.2"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.0",
     "tsx": "^4.20.3",
-    "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
   "packageManager": "yarn@4.9.2"

@@ -2,7 +2,7 @@
 
 SQLite FTS5 search as a library. Run the engine **in-process** (for example inside Firebase Functions) with an optional Cloud Storage copy of each index file. An HTTP server and typed client are included when you want a remote service instead.
 
-Each index is one SQLite file. Words are AND-ed as prefixes; accents are ignored. Extra `fields` are exact string filters.
+Each index is one SQLite file. Words are AND-ed as prefixes; accents are ignored. Extra `fields` are exact string filters. `ranges` compare those strings lexicographically (4-digit years work). `offset` pages the rank order, capped at 1000. `IndexDb.clear()` drops every row.
 
 ## Install
 
@@ -18,8 +18,10 @@ Requires Node 22+. `better-sqlite3` is a native dependency.
 ```ts
 import { IndexStore, gcsObjectStore } from '@kaipi/sqlite-fts'
 
-const store = new IndexStore('/tmp/sqlite-fts', gcsObjectStore('YOUR_BUCKET'))
-// omit the second arg to keep indexes on local disk only
+const store = new IndexStore('/tmp/sqlite-fts', gcsObjectStore('YOUR_BUCKET'), {
+  uploadDebounceMs: 5 * 60 * 1000, // omit or 0 to upload on every persisted write
+})
+// pass null instead of gcsObjectStore to keep indexes on local disk only
 
 await store.withIndex(
   'products',
@@ -27,15 +29,22 @@ await store.withIndex(
     db.upsert({
       id: '1',
       text: 'Café Latte Roast',
-      fields: { category: 'coffee', status: 'published' },
+      fields: { category: 'coffee', status: 'published', birthYear: '2012' },
     })
   },
-  true, // upload to GCS after write when an ObjectStore is configured
+  true, // upload when due; call store.flush('products') to upload now
 )
 
 const hits = await store.withIndex(
   'products',
-  (db) => db.search({ q: 'cafe roast', filters: { status: 'published' }, limit: 20 }),
+  (db) =>
+    db.search({
+      q: 'cafe roast',
+      filters: { status: 'published' },
+      ranges: { birthYear: { gte: '2000', lte: '2020' } },
+      limit: 20,
+      offset: 0,
+    }),
   false,
 )
 ```
@@ -71,6 +80,7 @@ Same package, process entry that listens on `PORT`:
 PUT    /indexes/{name}/documents/{id}
 DELETE /indexes/{name}/documents/{id}
 POST   /indexes/{name}/query
+POST   /indexes/{name}/flush
 GET    /health
 ```
 

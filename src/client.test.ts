@@ -44,5 +44,6 @@ describe('FtsClient', () => {
     expect(await client.remove('products', '1')).toBe(true)
     expect(await client.query('products', { q: 'cafe' })).toEqual([])
     expect(await client.health()).toEqual({ ok: true })
+    await client.flush('products')
   })
 })

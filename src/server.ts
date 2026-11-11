@@ -38,6 +38,11 @@ export function createApp(store: IndexStore, apiKey: string | undefined) {
         return send(res, 200, { hits })
       }
 
+      if (req.method === 'POST' && parts[2] === 'flush' && parts.length === 3) {
+        await store.flush(index)
+        return send(res, 204, null)
+      }
+
       return send(res, 404, { error: 'Not found.' })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Request failed.'

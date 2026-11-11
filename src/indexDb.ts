@@ -12,11 +12,21 @@ export type SearchHit = {
   fields: Record<string, string>
 }
 
+export type FieldRange = {
+  gte?: string
+  lte?: string
+}
+
 export type SearchInput = {
   q?: string
   filters?: Record<string, string>
+  /** Lexicographic compare on the stored field string. Missing fields do not match. */
+  ranges?: Record<string, FieldRange>
   limit?: number
+  offset?: number
 }
+
+const MAX_OFFSET = 1000
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS documents (
@@ -77,10 +87,22 @@ export class IndexDb {
     return result.changes > 0
   }
 
+  /** Delete every document. FTS triggers drop the corresponding index rows. */
+  clear(): void {
+    this.db.prepare('DELETE FROM documents').run()
+  }
+
+  /** Merge the WAL into the main file so a copy of the database is complete. */
+  checkpoint(): void {
+    this.db.pragma('wal_checkpoint(TRUNCATE)')
+  }
+
   search(input: SearchInput): SearchHit[] {
     const limit = clampLimit(input.limit)
+    const offset = clampOffset(input.offset)
     const match = input.q ? toFtsMatch(input.q) : ''
     const filters = normalizeFields(input.filters)
+    const ranges = normalizeRanges(input.ranges)
     const where: string[] = []
     const params: unknown[] = []
 
@@ -90,8 +112,19 @@ export class IndexDb {
     }
     for (const [key, value] of Object.entries(filters)) {
       where.push(`json_extract(documents.fields, ?) = ?`)
-      params.push(`$.${assertFieldName(key)}`)
+      params.push(`$.${key}`)
       params.push(value)
+    }
+    for (const range of ranges) {
+      const path = `$.${range.key}`
+      if (range.gte !== undefined) {
+        where.push(`json_extract(documents.fields, ?) >= ?`)
+        params.push(path, range.gte)
+      }
+      if (range.lte !== undefined) {
+        where.push(`json_extract(documents.fields, ?) <= ?`)
+        params.push(path, range.lte)
+      }
     }
     if (where.length === 0) return []
 
@@ -105,8 +138,9 @@ export class IndexDb {
       WHERE ${where.join(' AND ')}
       ${order}
       LIMIT ?
+      OFFSET ?
     `
-    const rows = this.db.prepare(sql).all(...params, limit) as { id: string; fields: string }[]
+    const rows = this.db.prepare(sql).all(...params, limit, offset) as { id: string; fields: string }[]
     return rows.map((row) => ({ id: row.id, fields: parseFields(row.fields) }))
   }
 }
@@ -126,7 +160,26 @@ function parseFields(raw: string): Record<string, string> {
   return normalizeFields(parsed as Record<string, string>)
 }
 
+function normalizeRanges(
+  ranges: Record<string, FieldRange> | undefined,
+): Array<{ key: string; gte?: string; lte?: string }> {
+  const out: Array<{ key: string; gte?: string; lte?: string }> = []
+  for (const [key, value] of Object.entries(ranges ?? {})) {
+    if (!value || typeof value !== 'object') continue
+    const gte = typeof value.gte === 'string' ? value.gte : undefined
+    const lte = typeof value.lte === 'string' ? value.lte : undefined
+    if (gte === undefined && lte === undefined) continue
+    out.push({ key: assertFieldName(key), gte, lte })
+  }
+  return out
+}
+
 function clampLimit(limit: number | undefined): number {
   if (!Number.isFinite(limit) || !limit || limit < 1) return 20
   return Math.min(100, Math.floor(limit))
+}
+
+function clampOffset(offset: number | undefined): number {
+  if (!Number.isFinite(offset) || !offset || offset < 0) return 0
+  return Math.min(MAX_OFFSET, Math.floor(offset))
 }

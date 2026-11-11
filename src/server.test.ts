@@ -56,4 +56,24 @@ describe('http', () => {
     const ok = await fetch(`${base}/health`, { headers: { authorization: 'Bearer secret' } })
     expect(ok.status).toBe(200)
   })
+
+  it('flush loads the index and returns 204', async () => {
+    const { base } = await listen()
+    const put = await fetch(`${base}/indexes/products/documents/1`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text: 'Latte' }),
+    })
+    expect(put.status).toBe(204)
+    const flushed = await fetch(`${base}/indexes/products/flush`, { method: 'POST' })
+    expect(flushed.status).toBe(204)
+    const queried = await fetch(`${base}/indexes/products/query`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ q: 'latte' }),
+    })
+    await expect(queried.json()).resolves.toEqual({
+      hits: [{ id: '1', fields: {} }],
+    })
+  })
 })
